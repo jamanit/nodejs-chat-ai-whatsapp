@@ -45,8 +45,28 @@ async function startSock() {
 
     console.log(`📩 Message from ${from}: ${text}`);
 
+    const resetKeywords = ["reset", "clear", "hapus"];
+    if (resetKeywords.includes(text.toLowerCase())) {
+      try {
+        await axios.delete("http://127.0.0.1:8000/api/chat-ai/clear-history", {
+          data: { from: from },
+        });
+
+        await sock.sendMessage(from, {
+          text: "✅ Your chat history has been cleared.",
+        });
+      } catch (err) {
+        console.error("❌ Failed to reset history:", err.message);
+        await sock.sendMessage(from, {
+          text: "❌ Failed to reset your chat history. Please try again later.",
+        });
+      }
+
+      return;
+    }
+
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/chat-ai", {
+      const res = await axios.post("http://127.0.0.1:8000/api/chat-ai/chat", {
         text: text,
         from: from,
       });
